@@ -1,0 +1,55 @@
+{
+  "name": "@allascode.institute/one-token-4-all",
+  "version": "1.0.0",
+  "description": "One DPoP token to rule them ALL - canonical DPoP token manager (RFC 9449) with WebCrypto P-256 key pairs and non-extractable private keys.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify": "npm run typecheck && npm run test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "js-yaml": "^4.3.2",
+    "tinybench": "^3.1.1"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  },
+  "keywords": [
+    "oauth",
+    "dpop",
+    "rfc9449",
+    "p-256",
+    "webcrypto",
+    "ecdsa",
+    "sender-constrained",
+    "jwt",
+    "token"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/purecore/one-token-4-all.git"
+  }
+}

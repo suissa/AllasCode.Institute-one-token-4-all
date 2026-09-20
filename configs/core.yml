@@ -1,0 +1,75 @@
+# one-token-4-all — Everything as Code
+#
+# All runtime tunables live here. The TypeScript source consumes this config
+# via `loadConfig(path?)` and applies defaults from `defaultConfig` when fields
+# are absent. Protocol-mandated values (curve P-256, alg ES256, typ dpop+jwt,
+# ATH = sha256(token), sanitizeHTU strips query/hash) are NOT configurable —
+# they are hardcoded in source and rejected here to avoid silent protocol
+# breakage.
+#
+# Architecture choice — LinearAutoDestroy:
+#   `client.ephemeralKeys` controls whether the DPoPClient generates a fresh
+#   key pair for every token endpoint request and destroys it after the
+#   request cycle. With this on (true), the SAME private key is never reused
+#   across requests — RFC 9449 §6.5 forbids key reuse across refresh requests
+#   that bind to a refresh token, so setting this to true will cause refresh
+#   flows to fail with `invalid_dpop_proof` against standards-compliant ASes.
+
+crypto:
+  random:
+    # Minimum acceptable byte length for `generateRandomString(n)`. Below this
+    # entropy floor the call throws.
+    minByteLength: 16
+    # Default byte length when caller omits the argument.
+    defaultByteLength: 32
+  pkce:
+    # RFC 7636 §4.1 mandates verifier ∈ [43..128] chars (base64url, no pad).
+    # 32 bytes -> 43 chars. Tune upward if you want more entropy.
+    verifierByteLength: 32
+  keypair:
+    # Per RFC 9449 §4.1 — only P-256 is allowed. We expose it for documentation
+    # purposes; the source still hardcodes 'P-256' and will reject other values.
+    curve: P-256
+    hash: SHA-256
+    # SECURITY GUARDRAIL — must be false. Private key MUST be non-extractable.
+    # `true` is rejected by the loader with an error.
+    extractablePrivate: false
+
+proof:
+  jti:
+    # Byte length of the cryptographically-random jti generated when neither
+    # explicit jti nor authCode is supplied. 24 bytes = 192 bits of entropy.
+    randomByteLength: 24
+  iat:
+    # Tolerance when verifying proof freshness (seconds). Proofs outside this
+    # window from `Date.now()/1000` are considered stale.
+    clockSkewSeconds: 30
+
+client:
+  http:
+    defaultMethod: POST
+    timeoutMs: 30000
+  nonce:
+    # RFC 9449 §9 — single-retry nonce loop. Bumping this beyond 1 is allowed
+    # but unusual; some ASes rotate the nonce every request.
+    maxRetries: 1
+  # LinearAutoDestroy — see header comment.
+  ephemeralKeys: false
+
+security:
+  # Whether the KeyStore may wipe references immediately (true) or only mark
+  # them for GC (false). Set false only for debugging.
+  immediateKeyWipe: true
+  # Whether the DPoPClient refuses to construct without an explicit
+  # `clientId`. `false` allows construction for tests with placeholder ids.
+  requireClientId: true
+
+benchmark:
+  warmupIterations: 50
+  measurementIterations: 500
+
+load:
+  parallelProofs: 100
+
+stress:
+  keygenCycles: 200
